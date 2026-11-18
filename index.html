@@ -6,21 +6,20 @@
 <title>APENAS TELA</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap">
 <style>
-:root{--bg:#EFEDFA;--ink:#1D1B4B;--mute:#5B5990;--panel:#fff;--line:#D4D0F0;--accent:#E8456B;--accent-ink:#fff;--ok:#1F8F5F;
+:root{color-scheme:dark;--bg:#000000;--ink:#ECEAFF;--mute:#A9A6DB;--panel:#1A1A1E;--line:transparent;--accent:#E8456B;--accent-ink:#fff;--ok:#4AD39A;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14122E;--ink:#ECEAFF;--mute:#A9A6DB;--panel:#1F1D45;--line:#35326B;--ok:#4AD39A}}
-:root[data-theme="dark"]{--bg:#14122E;--ink:#ECEAFF;--mute:#A9A6DB;--panel:#1F1D45;--line:#35326B;--ok:#4AD39A}
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Sora,system-ui,sans-serif}
 main{max-width:1100px;margin:0 auto;padding:20px;display:grid;gap:16px}
-h1{font-size:30px;font-weight:800;margin:0 0 2px;letter-spacing:-.02em}
+main:has(#join:not(.hide)){min-height:100vh;min-height:100dvh;align-content:center;align-items:center}
+h1{font-size:clamp(160px,8vw,200px);font-weight:800;margin:8px 0 6px;letter-spacing:-.02em;color:#ffffff;text-align:center}
 header p,.sm{color:var(--mute);font-size:13px;margin:0}
 header p{font-size:15px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
 .grid2{display:grid;gap:12px;grid-template-columns:1fr 1fr}
 @media (max-width:640px){.grid2{grid-template-columns:1fr}}
-label{display:grid;gap:4px;font-size:13px;color:var(--mute)}
+label{display:grid;gap:4px;font-size:13px;color:#ffffff}
 label.chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink)}
 input[type=text],input[type=password],select{font:400 15px Sora,system-ui,sans-serif;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;width:100%}
 select{width:auto;font-weight:600}
@@ -28,7 +27,8 @@ button{font:600 14px Sora,system-ui,sans-serif;border:1px solid var(--line);back
 button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 button.live{background:var(--ok);color:#fff;border-color:var(--ok)}
 button:disabled{opacity:.5;cursor:not-allowed}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button:focus-visible{outline:2px solid #ffffff;outline-offset:2px}
+input:focus-visible,select:focus-visible{outline:none}
 .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .sp{flex:1}
 .badge{display:inline-flex;gap:8px;align-items:center;padding:4px 10px;border:1px solid var(--line);border-radius:99px;font-size:12px}
@@ -39,20 +39,21 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .tile video{width:100%;height:100%;object-fit:contain;display:block}
 .tile span{position:absolute;top:10px;background:rgba(0,0,0,.65);color:#fff;font-size:12px;padding:3px 8px;border-radius:6px}
 .tile .lb{left:10px}.tile .st{right:10px}
-#err{color:var(--accent);min-height:1.4em}
+#err{color:var(--accent);min-height:1.4em;flex-basis:100%;text-align:center}
+#bJoin{background:#ffffff;color:#000000;border-color:#ffffff}
 .hide{display:none!important}
 </style>
 </head>
 <body>
 <main>
-<header><h1>APENAS TELA</h1>
+<header><h1 style="text-align: center;">APENAS TELA</h1></header>
 
 <section class="card" id="join">
   <div class="grid2">
     <label>Seu nome<input type="text" id="name" maxlength="24" autocomplete="nickname"></label>
     <label>Sala<input type="text" id="room" maxlength="64" placeholder="ex.: noite-de-jogo"></label>
   </div>
-  <div class="bar"><button class="pri" id="bJoin">Entrar na sala</button><span id="err" class="sm" role="alert"></span></div>
+  <div class="bar" style="justify-content:center"><button class="pri" id="bJoin">Entrar na sala</button><span id="err" class="sm" role="alert"></span></div>
 </section>
 
 <section id="live" class="hide" style="display:grid;gap:16px">
@@ -72,7 +73,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
       <button id="snd" class="hide">Ativar som</button>
       <button id="bLeave">Sair</button>
     </div>
-    <p class="sm" id="empty">Ninguém está transmitindo agora. Toque duas vezes em um vídeo para tela cheia.</p>
+    <p class="sm" id="empty">Tu não tá transmitindo</p>
   </div>
   <div id="tiles"></div>
 </section>
