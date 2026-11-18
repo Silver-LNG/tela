@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tela ao vivo</title>
+<title>APENAS TELA</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap">
 <style>
 :root{--bg:#EFEDFA;--ink:#1D1B4B;--mute:#5B5990;--panel:#fff;--line:#D4D0F0;--accent:#E8456B;--accent-ink:#fff;--ok:#1F8F5F;
@@ -45,17 +45,14 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 </head>
 <body>
 <main>
-<header><h1>Tela ao vivo</h1><p>Transmita sua tela em até 1080p 60fps para seus amigos.</p></header>
+<header><h1>APENAS TELA</h1>
 
 <section class="card" id="join">
   <div class="grid2">
     <label>Seu nome<input type="text" id="name" maxlength="24" autocomplete="nickname"></label>
     <label>Sala<input type="text" id="room" maxlength="64" placeholder="ex.: noite-de-jogo"></label>
   </div>
-  <label class="chk"><input type="checkbox" id="isHost"> Vou transmitir minha tela</label>
-  <label id="keyw" class="hide">Chave de transmissão<input type="password" id="key" autocomplete="off"></label>
   <div class="bar"><button class="pri" id="bJoin">Entrar na sala</button><span id="err" class="sm" role="alert"></span></div>
-  <p class="sm">Quem só vai assistir não precisa de chave. Basta o nome da sala.</p>
 </section>
 
 <section id="live" class="hide" style="display:grid;gap:16px">
@@ -91,10 +88,9 @@ const TOKEN_URL='https://tela.silfer-mts.workers.dev/'; // endereço do servidor
 const $=id=>document.getElementById(id);
 const {Room,RoomEvent,Track}=LivekitClient;
 const Q={'1080p60':{w:1920,h:1080,f:60,br:8e6},'1080p30':{w:1920,h:1080,f:30,br:5e6},'720p60':{w:1280,h:720,f:60,br:5e6}};
-let room,sharing=false,isHost=false;
+let room,sharing=false;
 
 try{$('name').value=localStorage.getItem('tv-name')||'';$('room').value=localStorage.getItem('tv-room')||''}catch{}
-$('isHost').onchange=()=>$('keyw').classList.toggle('hide',!$('isHost').checked);
 
 /* ---- tiles ---- */
 function meter(v,out){
@@ -128,15 +124,13 @@ function removeTile(id){
 /* ---- entrar ---- */
 $('bJoin').onclick=async()=>{
   const name=$('name').value.trim()||'Amigo',rn=$('room').value.trim();
-  isHost=$('isHost').checked;const key=$('key').value;
   $('err').textContent='';
   if(LIVEKIT_URL.includes('SEU-')||TOKEN_URL.includes('SEU-')){$('err').textContent='Configure LIVEKIT_URL e TOKEN_URL no início do script.';return}
   if(!/^[\w-]{3,64}$/.test(rn)){$('err').textContent='Sala: use de 3 a 64 letras, números, - ou _.';return}
-  if(isHost&&!key){$('err').textContent='Informe a chave de transmissão.';return}
   $('bJoin').disabled=true;
   try{
     const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({room:rn,name,hostKey:isHost?key:''})});
+      body:JSON.stringify({room:rn,name})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(d.error||'Não foi possível entrar.');
     room=new Room({adaptiveStream:false,dynacast:true});
@@ -145,7 +139,6 @@ $('bJoin').onclick=async()=>{
     try{await room.startAudio()}catch{}
     try{localStorage.setItem('tv-name',name);localStorage.setItem('tv-room',rn)}catch{}
     $('whot').textContent=rn+' · '+name;
-    $('ctl').classList.toggle('hide',!isHost);
     $('join').classList.add('hide');$('live').classList.remove('hide');
   }catch(e){$('err').textContent=e.message||'Falha ao conectar.';if(room){room.disconnect();room=null}}
   $('bJoin').disabled=false;
