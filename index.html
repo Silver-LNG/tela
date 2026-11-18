@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tela ao vivo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#EFEDFA;--ink:#1D1B4B;--mute:#5B5990;--panel:#fff;--line:#D4D0F0;--accent:#E8456B;--accent-ink:#fff;--ok:#1F8F5F;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14122E;--ink:#ECEAFF;--mute:#A9A6DB;--panel:#1F1D45;--line:#35326B;--ok:#4AD39A}}
+:root[data-theme="dark"]{--bg:#14122E;--ink:#ECEAFF;--mute:#A9A6DB;--panel:#1F1D45;--line:#35326B;--ok:#4AD39A}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Sora,system-ui,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:20px;display:grid;gap:16px}
+h1{font-size:30px;font-weight:800;margin:0 0 2px;letter-spacing:-.02em}
+header p,.sm{color:var(--mute);font-size:13px;margin:0}
+header p{font-size:15px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
+.grid2{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+label{display:grid;gap:4px;font-size:13px;color:var(--mute)}
+label.chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink)}
+input[type=text],input[type=password],select{font:400 15px Sora,system-ui,sans-serif;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;width:100%}
+select{width:auto;font-weight:600}
+button{font:600 14px Sora,system-ui,sans-serif;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer}
+button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.live{background:var(--ok);color:#fff;border-color:var(--ok)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sp{flex:1}
+.badge{display:inline-flex;gap:8px;align-items:center;padding:4px 10px;border:1px solid var(--line);border-radius:99px;font-size:12px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--mute)}
+.on .dot{background:var(--ok)}
+#tiles{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr))}
+.tile{position:relative;background:#0b0a1f;border-radius:14px;overflow:hidden;aspect-ratio:16/9}
+.tile video{width:100%;height:100%;object-fit:contain;display:block}
+.tile span{position:absolute;top:10px;background:rgba(0,0,0,.65);color:#fff;font-size:12px;padding:3px 8px;border-radius:6px}
+.tile .lb{left:10px}.tile .st{right:10px}
+#err{color:var(--accent);min-height:1.4em}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Tela ao vivo</h1><p>Transmita sua tela em até 1080p 60fps para seus amigos.</p></header>
+
+<section class="card" id="join">
+  <div class="grid2">
+    <label>Seu nome<input type="text" id="name" maxlength="24" autocomplete="nickname"></label>
+    <label>Sala<input type="text" id="room" maxlength="64" placeholder="ex.: noite-de-jogo"></label>
+  </div>
+  <label class="chk"><input type="checkbox" id="isHost"> Vou transmitir minha tela</label>
+  <label id="keyw" class="hide">Chave de transmissão<input type="password" id="key" autocomplete="off"></label>
+  <div class="bar"><button class="pri" id="bJoin">Entrar na sala</button><span id="err" class="sm" role="alert"></span></div>
+  <p class="sm">Quem só vai assistir não precisa de chave. Basta o nome da sala.</p>
+</section>
+
+<section id="live" class="hide" style="display:grid;gap:16px">
+  <div class="card">
+    <div class="bar">
+      <span class="badge on" id="who"><span class="dot"></span><span id="whot"></span></span>
+      <span id="ctl" class="bar">
+        <select id="q" aria-label="Qualidade">
+          <option value="1080p60">1080p · 60 fps</option>
+          <option value="1080p30">1080p · 30 fps</option>
+          <option value="720p60">720p · 60 fps</option>
+        </select>
+        <label class="chk"><input type="checkbox" id="aud" checked> Incluir áudio da tela</label>
+        <button class="pri" id="bShare">Compartilhar tela</button>
+      </span>
+      <span class="sp"></span>
+      <button id="snd" class="hide">Ativar som</button>
+      <button id="bLeave">Sair</button>
+    </div>
+    <p class="sm" id="empty">Ninguém está transmitindo agora. Toque duas vezes em um vídeo para tela cheia.</p>
+  </div>
+  <div id="tiles"></div>
+</section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.15.6/dist/livekit-client.umd.min.js"></script>
+<script>
+/* ====== CONFIGURE AQUI (2 linhas) ====== */
+const LIVEKIT_URL='wss://tela-6ji9ntpo.livekit.cloud';          // endereço do seu projeto LiveKit
+const TOKEN_URL='https://tela.silfer-mts.workers.dev/'; // endereço do servidor de tokens
+/* ======================================= */
+
+const $=id=>document.getElementById(id);
+const {Room,RoomEvent,Track}=LivekitClient;
+const Q={'1080p60':{w:1920,h:1080,f:60,br:8e6},'1080p30':{w:1920,h:1080,f:30,br:5e6},'720p60':{w:1280,h:720,f:60,br:5e6}};
+let room,sharing=false,isHost=false;
+
+try{$('name').value=localStorage.getItem('tv-name')||'';$('room').value=localStorage.getItem('tv-room')||''}catch{}
+$('isHost').onchange=()=>$('keyw').classList.toggle('hide',!$('isHost').checked);
+
+/* ---- tiles ---- */
+function meter(v,out){
+  if(!v.requestVideoFrameCallback)return null;
+  let n=0,t=performance.now();
+  const tick=()=>{n++;v.requestVideoFrameCallback(tick)};
+  v.requestVideoFrameCallback(tick);
+  return setInterval(()=>{
+    const now=performance.now();
+    out.textContent=v.videoWidth+'×'+v.videoHeight+' · '+Math.round(n*1000/(now-t))+' fps';
+    n=0;t=now;
+  },1000);
+}
+function addTile(id,label,v){
+  removeTile(id);
+  const d=document.createElement('div');d.className='tile';d.dataset.id=id;
+  const lb=document.createElement('span');lb.className='lb';lb.textContent=label;
+  const st=document.createElement('span');st.className='st';
+  v.playsInline=true;v.autoplay=true;
+  v.ondblclick=()=>v.requestFullscreen&&v.requestFullscreen();
+  d.append(v,lb,st);$('tiles').append(d);
+  d._iv=meter(v,st);
+  $('empty').classList.add('hide');
+}
+function removeTile(id){
+  const d=document.querySelector('.tile[data-id="'+id+'"]');
+  if(d){clearInterval(d._iv);d.remove()}
+  $('empty').classList.toggle('hide',!!document.querySelector('.tile'));
+}
+
+/* ---- entrar ---- */
+$('bJoin').onclick=async()=>{
+  const name=$('name').value.trim()||'Amigo',rn=$('room').value.trim();
+  isHost=$('isHost').checked;const key=$('key').value;
+  $('err').textContent='';
+  if(LIVEKIT_URL.includes('SEU-')||TOKEN_URL.includes('SEU-')){$('err').textContent='Configure LIVEKIT_URL e TOKEN_URL no início do script.';return}
+  if(!/^[\w-]{3,64}$/.test(rn)){$('err').textContent='Sala: use de 3 a 64 letras, números, - ou _.';return}
+  if(isHost&&!key){$('err').textContent='Informe a chave de transmissão.';return}
+  $('bJoin').disabled=true;
+  try{
+    const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({room:rn,name,hostKey:isHost?key:''})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.error||'Não foi possível entrar.');
+    room=new Room({adaptiveStream:false,dynacast:true});
+    bind();
+    await room.connect(LIVEKIT_URL,d.token);
+    try{await room.startAudio()}catch{}
+    try{localStorage.setItem('tv-name',name);localStorage.setItem('tv-room',rn)}catch{}
+    $('whot').textContent=rn+' · '+name;
+    $('ctl').classList.toggle('hide',!isHost);
+    $('join').classList.add('hide');$('live').classList.remove('hide');
+  }catch(e){$('err').textContent=e.message||'Falha ao conectar.';if(room){room.disconnect();room=null}}
+  $('bJoin').disabled=false;
+};
+
+function bind(){
+  room.on(RoomEvent.TrackSubscribed,(t,pub,p)=>{
+    if(t.source===Track.Source.ScreenShare)addTile(t.sid,p.name||p.identity,t.attach());
+    else if(t.source===Track.Source.ScreenShareAudio)document.body.append(t.attach());
+  });
+  room.on(RoomEvent.TrackUnsubscribed,t=>{t.detach().forEach(e=>e.remove());removeTile(t.sid)});
+  room.on(RoomEvent.LocalTrackPublished,pub=>{
+    if(pub.source!==Track.Source.ScreenShare)return;
+    const v=pub.track.attach();v.muted=true;addTile('local','Sua tela',v);setSharing(true);
+  });
+  room.on(RoomEvent.LocalTrackUnpublished,pub=>{
+    if(pub.source!==Track.Source.ScreenShare)return;
+    removeTile('local');setSharing(false);
+  });
+  room.on(RoomEvent.AudioPlaybackStatusChanged,()=>$('snd').classList.toggle('hide',room.canPlaybackAudio));
+  room.on(RoomEvent.Reconnecting,()=>{$('whot').textContent='Reconectando…'});
+  room.on(RoomEvent.Reconnected,()=>{$('whot').textContent=$('room').value.trim()+' · '+($('name').value.trim()||'Amigo')});
+  room.on(RoomEvent.Disconnected,()=>{
+    $('tiles').replaceChildren();setSharing(false);room=null;
+    $('live').classList.add('hide');$('join').classList.remove('hide');
+    $('err').textContent='Você saiu da sala.';
+  });
+}
+$('snd').onclick=()=>room&&room.startAudio();
+$('bLeave').onclick=()=>room&&room.disconnect();
+
+/* ---- compartilhar ---- */
+function setSharing(v){
+  sharing=v;
+  $('bShare').textContent=v?'Parar transmissão':'Compartilhar tela';
+  $('bShare').classList.toggle('live',v);
+  $('q').disabled=v;$('aud').disabled=v;
+}
+$('bShare').onclick=async()=>{
+  const lp=room.localParticipant;
+  if(sharing){await lp.setScreenShareEnabled(false);return}
+  const q=Q[$('q').value];
+  try{
+    await lp.setScreenShareEnabled(true,
+      {audio:$('aud').checked,resolution:{width:q.w,height:q.h,frameRate:q.f},contentHint:'motion'},
+      {screenShareEncoding:{maxBitrate:q.br,maxFramerate:q.f},simulcast:false});
+  }catch(e){
+    alert(e&&e.name==='NotAllowedError'
+      ?'A captura foi cancelada ou bloqueada. Clique de novo e escolha uma tela, janela ou aba. No Mac, libere "Gravação de Tela" para o navegador.'
+      :'Não foi possível compartilhar a tela: '+(e&&e.message?e.message:'erro desconhecido'));
+  }
+};
+</script>
+</body>
+</html>
